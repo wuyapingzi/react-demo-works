@@ -1,8 +1,52 @@
 import {Link, NavLink} from 'react-router-dom';
 import S from './style.scss';
+let propTypes = {
+    myInfo: PT.object,
+    logOut: PT.func,
+}
 
-export default function Nav(){
+export default function Nav(props){
 
+    let {myInfo, logOut} = props;
+    let userLink = null;
+    if(myInfo){
+        userLink = (
+            <NavLink
+                to='/my_page'
+                className={`${S.avatar} item`}
+                activeClassName='active'
+            >
+                <img
+                    src={myInfo.avatar}
+                    className='ui image avatar'
+                    alt=''
+                />
+                <div className={S.dropDown}>
+                    <p  onClick={(ev)=>{
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        logOut();
+                    }}>注销</p>
+                </div>
+            </NavLink>
+        );
+    }else{
+        userLink = [
+            (
+            <NavLink
+                to='/sign_in'
+                className={`item`}
+                key={1}
+            >登录</NavLink>),
+            (
+                <NavLink
+                    to='/sign_up'
+                    className={`item`}
+                    key={2}
+                >注册</NavLink>
+            )
+        ];
+    }
     return(
         <div className={`ui fixed secondary pointing menu ${S.nav}`}>
             <div className='ui container'>
@@ -15,14 +59,7 @@ export default function Nav(){
                     className={`item`}
                 >首页</NavLink>
                 <div className='menu right'>
-                    <NavLink
-                        to='/sign_in'
-                        className={`item`}
-                    >登录</NavLink>
-                    <NavLink
-                        to='/sign_up'
-                        className={`item`}
-                    >注册</NavLink>
+                   {userLink}
                     <NavLink
                         to='/write'
                         className={`item`}
@@ -32,3 +69,4 @@ export default function Nav(){
         </div>
     );
 }
+Nav.propTypes = propTypes;
