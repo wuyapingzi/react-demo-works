@@ -1,9 +1,11 @@
-import {Link} from 'react-router-dom';
+import {Link, withRouter} from 'react-router-dom';
 import S from './style.scss';
 import Author from './Author';
+let propTypes = {
+    initMyPage: PT.func,
+}
 
-export default function Recommend({authors}){
-    // authors = [];
+export default function Recommend({authors, initMyPage}){
     return (
         <div className={S.recommend}>
             <div className={S.title}>
@@ -12,20 +14,19 @@ export default function Recommend({authors}){
             <div className="ui items">
                 {
                     authors.map((elt, i)=>{
-                        if(i<100){
-                            return (
-                                <Author
-                                    {...{
-                                        user: elt
-                                    }}
-                                    key={i}
-                                />
-                            );
-                        }
-                        
+                        return (
+                            <Author
+                                {...{
+                                    user: elt,
+                                    initMyPage,
+                                }}
+                                key={i}
+                            />);
                     })
                 }
             </div>
         </div>
     );
 }
+
+Recommend.propTypes = propTypes;

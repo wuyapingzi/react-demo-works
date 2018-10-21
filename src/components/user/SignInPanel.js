@@ -1,12 +1,13 @@
-import React , {Component, createRef} from 'react';
+import React , {Component} from 'react';
 import Panel from './Panel';
 import S from './style.scss';
+
 import Validation from 'util/validation';
 
 let propTypes = {
     signInAjax: PT.func,
-    signInMsg: PT.object,
-}
+    signInMsg: PT.object
+};
 
 export default class SignInPanel extends Component{
 
@@ -14,120 +15,131 @@ export default class SignInPanel extends Component{
         super(props);
         this.state = {
             username: '',
-            password: '',
+            passw: '',
             nameErr: false,
-            passwordErr: false,
-        };
-        //前端验证
+            passwErr: false
+        }
+
         this.validator = new Validation();
+
         this.validator.addByValue('username', [
             {strategy: 'isEmpty', errorMsg: '用户名不能为空'},
             {strategy: 'hasSpace', errorMsg: '用户名不能有空格'},
-            {strategy: 'maxLength:6', errorMsg: '用户名最长为6'},
+            {strategy: 'maxLength:6', errorMsg: '最长为6'}
         ]);
-        this.validator.addByValue('password', [
+
+        this.validator.addByValue('passw', [
             {strategy: 'isEmpty', errorMsg: '密码不能为空'},
             {strategy: 'hasSpace', errorMsg: '密码不能有空格'},
-            {strategy: 'maxLength:6', errorMsg: '密码最长为6'},
+            {strategy: 'maxLength:6', errorMsg: '最长为6'}
+
         ]);
-        //函数绑定
+
         this.nameChange = this.nameChange.bind(this);
-        this.passwordChange = this.passwordChange.bind(this);
+        this.passwChange = this.passwChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+
     }
 
     nameChange(ev){
         let {target} = ev;
-        //获取前端验证信息
+
         let msg = this.validator.valiOneByValue('username', target.value);
-        
+
         this.setState({
             username: target.value,
-            nameErr: msg,
-        })
-    }
-
-    passwordChange(ev){
-        let {target} = ev;
-        //获取前端验证信息
-        let msg = this.validator.valiOneByValue('password', target.value);
-
-        this.setState({
-            password: target.value,
-            passwordErr: msg,
-        })
-    }
-    onSubmit(ev){
-        ev.preventDefault(); 
-        ev.stopPropagation();
-        let {nameDom, passwDom} = this.refs;
-        let {validator} = this;
-        //提交前验证
-        var nameErr = validator.valiOneByValue('username', nameDom.value);
-        var passwordErr = validator.valiOneByValue('password', passwDom.value);
-        this.setState({
-            nameErr,
-            passwordErr,
+            nameErr: msg
         });
-        //只有验证通过才出发ajax请求
-        if(!nameErr && !passwordErr){
+
+
+    }
+
+    passwChange(ev){
+        let {target} = ev;
+        let msg = this.validator.valiOneByValue('passw', target.value);
+        this.setState({
+            passw: target.value,
+            passwErr: msg
+        });
+    }
+
+    onSubmit(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        let {validator} = this;
+
+        let {nameDom, passwDom} = this.refs;
+
+        let nameErr = this.validator.valiOneByValue('username', nameDom.value);
+
+        let passwErr = this.validator.valiOneByValue('passw', passwDom.value);
+
+        this.setState({
+            nameErr, passwErr
+        });
+
+        if( !nameErr && !passwErr ){
             this.props.signInAjax({
                 username: nameDom.value,
-                passw: passwDom.value,
-            })
+                passw: passwDom.value
+            });
         }
+
     }
 
     render(){
-        let {nameChange, passwordChange, onSubmit} = this;
-        let {username, password, nameErr, passwordErr} = this.state;
-        
+
+        let {nameChange, passwChange, onSubmit} = this;
+
+        let {username, passw, nameErr, passwErr} = this.state;
+
         let {signInMsg} = this.props;
-        let signInMsgErr = null;
-        //登录出错的处理
+
+        let resInfo = null;
+
         if(signInMsg && signInMsg.code !== 0){
-            signInMsgErr = (
-                <div className='ui message error'>
-                    <p>
-                        {signInMsg.msg}
-                    </p>
+            resInfo = (
+                <div className="ui message error">
+                    <p>{signInMsg.msg}</p>
                 </div>
-            )
+            );
         }
 
-        let nameErrMsg = nameErr? (
+        let nameErrMsg = nameErr ? (
             <p className={S.err}>{nameErr}</p>
-        ): null;
-        let passwordErrMsg = passwordErr? (
-            <p className={S.err}>{passwordErr}</p>
-        ): null;
+        ) : null;
+        let passwErrMsg = passwErr ? (
+            <p className={S.err}>{passwErr}</p>
+        ) : null;
+
         return (
             <div className={S.sign_panel}>
-                {signInMsgErr}
+                {resInfo}
                 <form
                     className="ui form"
-                    onSubmit={onSubmit}//form表单提交时出发函数
+                    onSubmit={onSubmit}
                 >
-                    <div className={`field ${nameErr? 'error': ''}`}>
+                    <div className={`field ${nameErr ? 'error' : ''}`}>
                         <input
                             type="text"
                             placeholder="用户名"
                             value={username}
-                            ref='nameDom'
-                            onChange = {nameChange}
+                            onChange={nameChange}
+                            ref="nameDom"
                         />
                         {nameErrMsg}
                     </div>
 
-                    <div className={`field ${passwordErr? 'error': ''}`}>
+                    <div className={`field ${passwErr ? 'error' : ''}`}>
                         <input
                             type="text"
                             placeholder="密码"
-                            value={password}
+                            value={passw}
+                            onChange={passwChange}
                             ref="passwDom"
-                            onChange = {passwordChange}
                         />
-                        {passwordErrMsg}
+                        {passwErrMsg}
                     </div>
 
                     <div className="field">

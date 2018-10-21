@@ -5,28 +5,33 @@ import EntryPanel from 'components/user/Panel';
 let propTypes = {
     signInAjax: PT.func,
     signInMsg: PT.object,
-    clearTips: PT.func,
-}
+    clearLoginMsg: PT.func
+};
 
 export default class SignIn extends React.Component{
     constructor(props){
         super(props);
     }
+
     componentWillUnmount(){
-        this.props.clearTips();
+        this.props.clearLoginMsg();
     }
+
     render(){
+
         let {signInAjax, signInMsg} = this.props;
+
         return (
             <EntryPanel >
-                <SignInPanel 
+                <SignInPanel
                     {...{
                         signInAjax,
-                        signInMsg,
+                        signInMsg
                     }}
                 />
             </EntryPanel>
         );
     }
 }
+
 SignIn.propTypes = propTypes;

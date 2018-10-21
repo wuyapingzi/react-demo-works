@@ -5,19 +5,22 @@ import EntryPanel from 'components/user/Panel';
 let propTypes = {
     signUpAjax: PT.func,
     signUpMsg: PT.object,
-    clearTips: PT.func,
-}
+    clearLoginMsg: PT.func
+};
+
 export default class SignUp extends React.Component{
     constructor(props){
         super(props);
     }
 
     componentWillUnmount(){
-        this.props.clearTips();
+        this.props.clearLoginMsg();
     }
 
     render(){
+
         let {signUpAjax, signUpMsg} = this.props;
+
         return (
             <EntryPanel >
                 <SignUpPanel
@@ -30,4 +33,5 @@ export default class SignUp extends React.Component{
         );
     }
 }
+
 SignUp.propTypes = propTypes;

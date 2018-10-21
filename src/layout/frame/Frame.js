@@ -1,96 +1,153 @@
-import React, {Component} from 'react';
 import {Route, Redirect} from 'react-router-dom';
 import Nav from 'nav/Nav';
-import Home from 'view/Home/Home';
-import SignIn from 'view/user/SignIn';
+import Home from 'view/home/Home.js';
 import SignUp from 'view/user/SignUp';
+import SignIn from 'view/user/SignIn';
+import MyPage from 'view/user/MyPage';
 
 import cfg from 'config/config.json';
 
 import S from './style.scss';
 
-export default class Frame extends Component{
+
+
+export default class Frame extends React.Component{
     constructor(props){
-        super(props)
+        super(props);
         this.state = {
             myInfo: null,
             signInMsg: null,
             signUpMsg: null,
             hasLoginReq: false,
-        }
-        this.signInAjax = this.signInAjax.bind(this);//绑定登录函数
-        this.signUpAjax = this.signUpAjax.bind(this);//绑定注册函数
-        this.clearTips = this.clearTips.bind(this);
+            myPagePreviews: [],
+            notebooks: [],
+            previewsName: '所有文章'
+        };
+
+        this.signInAjax = this.signInAjax.bind(this);
+        this.signUpAjax = this.signUpAjax.bind(this);
+        this.clearLoginMsg = this.clearLoginMsg.bind(this);
         this.initMyInfo = this.initMyInfo.bind(this);
         this.logOut = this.logOut.bind(this);
+        this.getPreview = this.getPreview.bind(this);
+        this.initMyPage = this.initMyPage.bind(this);
+        this.changePreviewsName = this.changePreviewsName.bind(this);
     }
-    //登录的ajax请求 
-    signInAjax(reqData){
-        $.post(`${cfg.url}/login`, reqData)
-        .done(ret => {
-            let {code, data} = ret;
-            if(code === 0){
-                this.initMyInfo(data);
-            }else{
-                this.setState({signInMsg: ret});
-            }
-        })
-    }
-    //注册的ajax请求
-    signUpAjax(reqData){
-        $.post(`${cfg.url}/register`, reqData)
-        .done(ret => {
-            let {code, data} = ret;
-            this.setState({
-                signUpMsg: ret,
-            })
-            if(code === 0){
-                setTimeout(()=>{
-                    this.initMyInfo(data);
-                }, 1000);
-            }
-        })
-    }
-    //清除登录注册的提示信息
-    clearTips(){
-        this.setState({
-            signInMsg: null,
-            signUpMsg: null,
-        })
-    }
-    //格式化头像的路径
+
     initMyInfo(myInfo){
         if(myInfo){
             myInfo.avatar = cfg.url + myInfo.avatar;
         }
-        this.setState({
-            myInfo,
-        })
+
+
+        this.setState({myInfo});
     }
+
+    clearLoginMsg(){
+        this.setState({
+            signInMsg: null,
+            signUpMsg: null
+        });
+    }
+
+    signInAjax(reqData){
+        $.post(`${cfg.url}/login`, reqData)
+        .done(ret=>{
+
+            let {code, data} = ret;
+
+
+
+            if(code===0){
+                this.initMyInfo(ret.data);
+            }else{
+                this.setState({signInMsg: ret});
+            }
+
+        });
+    }
+
+    signUpAjax(reqData){
+        $.post(`${cfg.url}/register`, reqData)
+        .done((ret)=>{
+            let {code, data} = ret;
+
+            this.setState({signUpMsg: ret});
+
+            if(code===0){
+                setTimeout(()=>{
+                    this.initMyInfo(ret.data);
+                });
+            }
+
+
+        });
+    }
+
     logOut(){
         $.post(`${cfg.url}/logout`)
-        .done(({code}) =>{
-            this.initMyInfo(null);
-        })
+        .done(({code})=>{
+            if(code===0){
+                this.initMyInfo(null);
+            }
+        });
     }
+
+    getPreview(data){
+        $.post(`${cfg.url}/getPreview`,data)
+        .done(({code, data})=>{
+            if(code===0){
+                this.setState({
+                    myPagePreviews: data
+                });
+            }
+        });
+    }
+
+    // previewName 就是用户页头像下显示的那几个字
+    initMyPage(user_id, previewsData, previewName){
+        this.getPreview(previewsData);
+
+        $.post(`${cfg.url}/getCollection`,{
+            user_id
+        })
+        .done(({code, data})=>{
+            if(code===0){
+                this.setState({
+                    notebooks: data,
+                    previewName
+                });
+            }
+        });
+
+    }
+
+    changePreviewsName(previewsName){
+        this.setState({previewsName});
+    }
+
     componentDidMount(){
-        // 组件挂载完成之后请求自动登录
         $.post(`${cfg.url}/autologin`)
-        .done(({code, data}) => {
-            if(code === 0) {
+        .done(({code, data})=>{
+            if(code===0){
                 this.initMyInfo(data);
             }
-            this.setState({hasLoginReq: true})
-        })
+            this.setState({hasLoginReq: true});
+        });
     }
+
+
     render(){
-        let {signInAjax, signUpAjax, clearTips, logOut} = this;
-        let {myInfo, signInMsg, signUpMsg, hasLoginReq} = this.state;
+
+        let {signInAjax, signUpAjax, clearLoginMsg, logOut, initMyPage} = this;
+
+        let {myInfo, signInMsg , signUpMsg, hasLoginReq, myPagePreviews, notebooks, previewsName} = this.state;
 
         if(!hasLoginReq){
-            return(<div></div>)
+            return (<div></div>);
         }
-        return(
+
+        return (
             <div className={S.layout}>
                 <Nav
                     {...{
@@ -98,39 +155,63 @@ export default class Frame extends Component{
                         logOut
                     }}
                 />
-                <Route exact path='/' component={Home} />
-                <Route exact path='/sign_in' render={
-                    //render回调渲染组件，将登录ajax请求传递到登录组件
-                    (props) => (
-                        myInfo? (
-                            <Redirect to='/'/>
-                        ): (
-                            //view层的登录组件
+                <Route exact path="/" render={
+                    (props)=> (
+                        <Home
+                            {...{
+                                initMyPage
+                            }}
+                            {...props}
+                        />
+                    )
+                }/>
+
+                <Route exact path="/sign_in" render={
+                    (props)=>(
+                        myInfo ? (
+                            <Redirect to="/"/>
+                        ) : (
                             <SignIn
                                 {...{
                                     signInAjax,
                                     signInMsg,
-                                    clearTips,
+                                    clearLoginMsg
                                 }}
                             />
                         )
-                        
+
                     )
-                } />
-                <Route exact path='/sign_up' render={(props) => (
-                    myInfo? (
-                        <Redirect to='/' />
-                    ): (
-                        <SignUp
+                }/>
+                <Route exact path="/sign_up" render={
+                    (props)=>(
+                        myInfo ? (
+                            <Redirect to="/"/>
+                        ) : (
+                            <SignUp
+                                {...{
+                                    signUpAjax,
+                                    signUpMsg,
+                                    clearLoginMsg
+                                }}
+                            />
+                        )
+
+                    )
+                }/>
+                <Route exact path="/my_page" render={
+                    (props)=>(
+                        <MyPage
                             {...{
-                                signUpAjax,
-                                signUpMsg,
-                                clearTips,
+                                myPagePreviews,
+                                previewsName,
+                                notebooks,
+                                initMyPage,
                             }}
+                            {...props}
                         />
+
                     )
-                    
-                )} />
+                }/>
             </div>
         );
     }
