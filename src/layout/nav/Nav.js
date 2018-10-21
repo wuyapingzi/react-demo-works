@@ -3,21 +3,35 @@ import S from './style.scss';
 
 let propTypes = {
     myInfo: PT.object,
-    logOut: PT.func
+    logOut: PT.func,
+    initMyPage: PT.func,
 }
 
 export default function Nav(props){
 
-    let {myInfo, logOut} = props;
-
+    let {myInfo, logOut, initMyPage,history} = props;
+    
     let userLink = null;
-
     if(myInfo){
+        let {id:user_id, username:user_name, user_intro, avatar} = myInfo;
         userLink = (
             <NavLink
                 to="/my_page"
                 className={`${S.avatar} item`}
                 activeClassName="active"
+                onClick={ev=>{
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    history.push('/my_page', {
+                        userInfo: {
+                            user_id,
+                            user_intro,
+                            user_name,
+                            avatar,
+                        }
+                    });
+                    initMyPage(user_id, {user_id}, '所有文章');
+                }}
             >
                 <img
                     src={myInfo.avatar}

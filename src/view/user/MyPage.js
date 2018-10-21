@@ -8,17 +8,27 @@ let propTypes = {
     notebooks: PT.array,
     myPagePreviews: PT.array,
     initMyPage: PT.func,
+    changeMyPreviews: PT.func,
 }
 
 export default class MyPage extends React.Component{
     constructor(props){
         super(props);
+        this.collectionClick = this.collectionClick.bind(this);
+        this.notebooksClick = this.notebooksClick.bind(this);
+    }
+    collectionClick(collection_id, collection_name){
+        this.props.changeMyPreviews({collection_id}, collection_name);
+    }
+    notebooksClick(collection_id, collection_name){
+        this.props.changeMyPreviews({collection_id}, collection_name);
     }
 
     render(){
 
         let {previewsName, notebooks, myPagePreviews, initMyPage, location} = this.props;
         let {userInfo} = location.state;
+        let {collectionClick, notebooksClick} = this;
 
         return (
             <div className="ui container grid">
@@ -38,6 +48,7 @@ export default class MyPage extends React.Component{
                         {...{
                             previews: myPagePreviews,
                             initMyPage,
+                            collectionClick,
                         }}
                     />
                 </div>
@@ -46,6 +57,7 @@ export default class MyPage extends React.Component{
                         {...{
                             notebooks,
                             userInfo,
+                            notebooksClick,
                         }}
                     />
                 </div>

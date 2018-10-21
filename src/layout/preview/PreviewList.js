@@ -6,12 +6,13 @@ import cfg from 'config/config.json';
 
 let propTypes = {
     previews: PT.array,
-    initMyPage: PT.func
+    initMyPage: PT.func,
+    collectionClick: PT.func,
 };
 
 export default function PreviewList(props){
 
-    let {previews, initMyPage} = props;
+    let {previews, initMyPage, collectionClick} = props;
 
     previews = previews.map((elt, i)=>{
         if(i>50){
@@ -45,9 +46,26 @@ export default function PreviewList(props){
                 }}
                 key={i}
             >
-                <Link to=""
-                    className={S.tag}
-                >{collection_name}</Link>
+                {collection_id? (
+                    <Link to=""
+                        className={S.tag}
+                        onClick = {ev=>{
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            collectionClick && collectionClick(
+                                collection_id, 
+                                collection_name,
+                                {
+                                    user_id,
+                                    user_name,
+                                    user_intro,
+                                    avatar,
+                                }
+                                )
+                        }}
+                    >{collection_name}</Link>
+                ): null}
+                
             </Preview>
         );
     });

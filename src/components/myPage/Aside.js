@@ -4,6 +4,7 @@ import S from './style.scss';
 let propTypes = {
     notebooks: PT.array,
     userInfo: PT.object,
+    notebooksClick: PT.func,
 }
 export default class Aside extends React.Component{
     constructor(props){
@@ -11,12 +12,18 @@ export default class Aside extends React.Component{
     }
 
     render(){
-        let{notebooks, userInfo} = this.props;
+        let{notebooks, userInfo, notebooksClick} = this.props;
         notebooks = notebooks.map((elt, i)=>{
             let{id:collection_id, collection_name} = elt;
 
             return(
-                <div className='item' key={i}>
+                <div className='item' key={i}
+                    onClick={ev=>{
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        notebooksClick(collection_id, collection_name);
+                    }}
+                >
                     <i className='book icon'></i>
                     <div className='content'>{collection_name}</div>
                 </div>

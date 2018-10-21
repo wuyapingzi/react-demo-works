@@ -32,6 +32,7 @@ export default class Frame extends React.Component{
         this.getPreview = this.getPreview.bind(this);
         this.initMyPage = this.initMyPage.bind(this);
         this.changePreviewsName = this.changePreviewsName.bind(this);
+        this.changeMyPreviews = this.changeMyPreviews.bind(this);
     }
 
     initMyInfo(myInfo){
@@ -56,10 +57,8 @@ export default class Frame extends React.Component{
 
             let {code, data} = ret;
 
-
-
             if(code===0){
-                this.initMyInfo(ret.data);
+                this.initMyInfo(data);
             }else{
                 this.setState({signInMsg: ret});
             }
@@ -105,7 +104,7 @@ export default class Frame extends React.Component{
     }
 
     // previewName 就是用户页头像下显示的那几个字
-    initMyPage(user_id, previewsData, previewName){
+    initMyPage(user_id, previewsData, previewsName){
         this.getPreview(previewsData);
 
         $.post(`${cfg.url}/getCollection`,{
@@ -115,7 +114,7 @@ export default class Frame extends React.Component{
             if(code===0){
                 this.setState({
                     notebooks: data,
-                    previewName
+                    previewsName
                 });
             }
         });
@@ -124,6 +123,10 @@ export default class Frame extends React.Component{
 
     changePreviewsName(previewsName){
         this.setState({previewsName});
+    }
+    changeMyPreviews(data, previewsName){
+        this.getPreview(data);
+        this.changePreviewsName(previewsName);
     }
 
     componentDidMount(){
@@ -134,15 +137,22 @@ export default class Frame extends React.Component{
             }
             this.setState({hasLoginReq: true});
         });
+        let {state, pathname} = this.props.location;
+
+        if(state && pathname == '/my_page'){
+            let {userInfo: {user_id}} = state;
+            this.initMyPage(user_id, {user_id}, '所有文集');
+        }
+
     }
 
 
     render(){
 
-        let {signInAjax, signUpAjax, clearLoginMsg, logOut, initMyPage} = this;
+        let {signInAjax, signUpAjax, clearLoginMsg, logOut, initMyPage, changeMyPreviews} = this;
 
         let {myInfo, signInMsg , signUpMsg, hasLoginReq, myPagePreviews, notebooks, previewsName} = this.state;
-
+        let {history} = this.props;
         if(!hasLoginReq){
             return (<div></div>);
         }
@@ -152,7 +162,9 @@ export default class Frame extends React.Component{
                 <Nav
                     {...{
                         myInfo,
-                        logOut
+                        logOut,
+                        initMyPage,
+                        history,
                     }}
                 />
                 <Route exact path="/" render={
@@ -200,16 +212,20 @@ export default class Frame extends React.Component{
                 }/>
                 <Route exact path="/my_page" render={
                     (props)=>(
-                        <MyPage
-                            {...{
-                                myPagePreviews,
-                                previewsName,
-                                notebooks,
-                                initMyPage,
-                            }}
-                            {...props}
-                        />
-
+                        props.location.state? (
+                            <MyPage
+                                {...{
+                                    myPagePreviews,
+                                    previewsName,
+                                    notebooks,
+                                    initMyPage,
+                                    changeMyPreviews,
+                                }}
+                                {...props}
+                            />
+                        ): (
+                            <Redirect to ='/'/>
+                        )
                     )
                 }/>
             </div>
